@@ -8,7 +8,7 @@ function Weather() {
   const API = "6dc83ed75396ba6c42f971f48a41dddc";
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { city } = useCity();
+  const { city, setCity } = useCity();
 
   const getDayName = (data, index) => {
     var allDays = [
@@ -24,6 +24,21 @@ function Weather() {
     var dayName = allDays[d.getDay()]; // It will give day index, and based on index we can get day name from the array.
     return dayName;
   };
+
+  useEffect(() => {
+    const success = (pos) => {
+      const geoApiUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&localityLanguage=en`;
+      axios(geoApiUrl).then((res) => {
+        console.log(res.data);
+        setCity(res.data.city || "Adana");
+        localStorage.setItem("city", res.data.city || "Adana");
+      });
+    };
+    const error = () => {
+      setCity(localStorage.getItem("city") || "Adana");
+    };
+    navigator.geolocation.getCurrentPosition(success, error);
+  }, [setCity]);
 
   useEffect(() => {
     setLoading(true);
@@ -48,7 +63,7 @@ function Weather() {
         <ul className="weather">
           {data.daily.slice(0, data.daily.length - 1).map((day, index) => {
             return (
-              <li key={index}>
+              <li key={index} className={index === 0 ? "current" : "future"}>
                 <h4>{getDayName(data, index)}</h4>
                 <img
                   src={`http://openweathermap.org/img/wn/${day.weather[0].icon}.png`}
@@ -58,6 +73,7 @@ function Weather() {
                 <p className="temp">
                   {day.temp.day}°C - {day.temp.night}°C
                 </p>
+                {index === 0 && <p>Present Day</p>}
               </li>
             );
           })}

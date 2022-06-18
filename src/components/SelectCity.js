@@ -17,6 +17,7 @@ function SelectCity() {
           onChange={(e) => {
             handleChange(e);
             setCity(e.target.value);
+            values.city = e.target.value;
           }}
           name="city"
           id="city"
